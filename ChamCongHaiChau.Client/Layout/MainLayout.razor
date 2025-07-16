@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject IAuthServices AuthService
 @* Required *@
 <MudThemeProvider />
 <MudPopoverProvider />
@@ -23,3 +24,10 @@
         </article>
     </main>
 </div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.CheckTokenAndLogoutIfExpired();
+    }
+}

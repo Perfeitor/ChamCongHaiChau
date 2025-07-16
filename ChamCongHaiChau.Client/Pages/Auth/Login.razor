@@ -1,0 +1,75 @@
+﻿@page "/login"
+@using System.ComponentModel.DataAnnotations
+@inject IAuthServices AuthService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<EditForm Model="@loginModel" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <MudCard Class="mx-auto mt-12" Style="max-width:400px;">
+        <MudCardContent>
+            <MudText Typo="Typo.h5" Class="mb-4">Đăng nhập</MudText>
+
+            <MudTextField Label="Email"
+                          @bind-Value="loginModel.Email"
+                          For="@(() => loginModel.Email)"
+                          Required="true" />
+
+            <MudTextField Label="Mật khẩu"
+                          @bind-Value="loginModel.Password"
+                          For="@(() => loginModel.Password)"
+                          Required="true"
+                          InputType="@passwordInputType"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@passwordIcon"
+                          OnAdornmentClick="TogglePasswordVisibility" />
+
+            <MudCheckBox @bind-Value="loginModel.RememberMe" Label="Nhớ tôi" />
+        </MudCardContent>
+
+        <MudCardActions>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                Đăng nhập
+            </MudButton>
+        </MudCardActions>
+    </MudCard>
+</EditForm>
+
+@code {
+    private LoginRequest loginModel = new();
+    private InputType passwordInputType = InputType.Password;
+    private string passwordIcon = Icons.Material.Filled.VisibilityOff;
+
+    private void TogglePasswordVisibility()
+    {
+        if (passwordInputType == InputType.Password)
+        {
+            passwordInputType = InputType.Text;
+            passwordIcon = Icons.Material.Filled.Visibility;
+        }
+        else
+        {
+            passwordInputType = InputType.Password;
+            passwordIcon = Icons.Material.Filled.VisibilityOff;
+        }
+    }
+    private async Task HandleValidSubmit()
+    {
+        var req = new LoginRequest {
+            Email = loginModel.Email,
+            Password = loginModel.Password,
+            RememberMe = loginModel.RememberMe
+        };
+
+        var ok = await AuthService.Login(req);
+        if (ok)
+        {
+            Snackbar.Add("Đăng nhập thành công!", Severity.Success);
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
+        else
+        {
+            Snackbar.Add("Đăng nhập thất bại, vui lòng kiểm tra lại.", Severity.Error);
+        }
+    }
+}

@@ -1,0 +1,12 @@
+﻿@inject NavigationManager NavigationManager
+<PageTitle>Trang chuyển hướng</PageTitle>
+
+<MudText>Đang chuyển hướng</MudText>
+
+@code {
+    override protected void OnInitialized()
+    {
+        // Redirect to the login page
+        NavigationManager.NavigateTo("/login", forceLoad: true);
+    }
+}

@@ -42,8 +42,10 @@ public class AuthController : ControllerBase
         var user = await _userManager.FindByEmailAsync(model.Email);
         if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
         {
-            var token = GenerateJwtToken(user, model.RememberMe);
-            return Ok(new { token });
+            TokenResponse response = new();
+            response.Token = GenerateJwtToken(user, model.RememberMe);
+            response.currentUser = user;
+            return Ok(response);
         }
 
         return Unauthorized();
