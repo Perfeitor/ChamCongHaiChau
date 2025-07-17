@@ -1,8 +1,5 @@
-﻿@page "/login"
-@using System.ComponentModel.DataAnnotations
-@inject IAuthServices AuthService
-@inject NavigationManager Navigation
-@inject ISnackbar Snackbar
+﻿@page "/Account/login"
+@inject IAuthService AuthService
 
 <EditForm Model="@loginModel" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />

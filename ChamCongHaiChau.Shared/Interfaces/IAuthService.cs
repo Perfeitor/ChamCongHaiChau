@@ -1,6 +1,6 @@
 ﻿using ChamCongHaiChau.Shared.Models;
 
-public interface IAuthServices
+public interface IAuthService
 {
     Task<bool> CheckTokenAndLogoutIfExpired();
     Task<bool> Login(LoginRequest request);
