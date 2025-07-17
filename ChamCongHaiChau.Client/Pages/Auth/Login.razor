@@ -1,42 +1,69 @@
 ﻿@page "/Account/login"
 @inject IAuthService AuthService
 
-<EditForm Model="@loginModel" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <MudCard Class="mx-auto mt-12" Style="max-width:400px;">
-        <MudCardContent>
-            <MudText Typo="Typo.h5" Class="mb-4">Đăng nhập</MudText>
+<style>
+    @@media (max-width: 600px) {
+        .mud-paper {
+            margin-top: 20%;
+        }
+    }
+</style>
 
+<MudPaper Elevation="4" Class="pa-6 rounded-lg" Style="width:100%">
+    <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4" Color="Color.Primary">Đăng nhập</MudText>
+
+    <EditForm Model="@loginModel" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+
+        <MudStack Spacing="3">
             <MudTextField Label="Email"
-                          @bind-Value="loginModel.Email"
                           For="@(() => loginModel.Email)"
-                          Required="true" />
+                          @bind-Value="loginModel.Email"
+                          Required="true"
+                          Variant="Variant.Outlined"
+                          ShrinkLabel
+                          Class="w-100" />
 
             <MudTextField Label="Mật khẩu"
-                          @bind-Value="loginModel.Password"
                           For="@(() => loginModel.Password)"
+                          @bind-Value="loginModel.Password"
                           Required="true"
+                          Variant="Variant.Outlined"
                           InputType="@passwordInputType"
+                          ShrinkLabel
                           Adornment="Adornment.End"
                           AdornmentIcon="@passwordIcon"
-                          OnAdornmentClick="TogglePasswordVisibility" />
+                          OnAdornmentClick="TogglePasswordVisibility"
+                          Class="w-100" />
 
-            <MudCheckBox @bind-Value="loginModel.RememberMe" Label="Nhớ tôi" />
-        </MudCardContent>
+            <MudCheckBox @bind-Value="loginModel.RememberMe" Label="Nhớ đăng nhập" />
 
-        <MudCardActions>
-            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
-                Đăng nhập
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large"
+                       ButtonType="ButtonType.Submit" Class="mt-4">
+                <MudIcon Icon="@Icons.Material.Filled.Login" Class="mr-2" /> Đăng nhập
             </MudButton>
-        </MudCardActions>
-    </MudCard>
-</EditForm>
+
+            <MudText Typo="Typo.body2" Align="Align.Center" Class="mt-2">
+                Quên mật khẩu? <MudLink Href="/forgot-password">Khôi phục</MudLink>
+            </MudText>
+        </MudStack>
+    </EditForm>
+</MudPaper>
 
 @code {
     private LoginRequest loginModel = new();
     private InputType passwordInputType = InputType.Password;
     private string passwordIcon = Icons.Material.Filled.VisibilityOff;
 
+    protected override void OnInitialized()
+    {
+        try
+        {
+            base.OnInitialized();
+        }
+        catch (Exception e)
+        { }
+    }
     private void TogglePasswordVisibility()
     {
         if (passwordInputType == InputType.Password)
@@ -52,7 +79,8 @@
     }
     private async Task HandleValidSubmit()
     {
-        var req = new LoginRequest {
+        var req = new LoginRequest
+        {
             Email = loginModel.Email,
             Password = loginModel.Password,
             RememberMe = loginModel.RememberMe
@@ -62,7 +90,7 @@
         if (ok)
         {
             Snackbar.Add("Đăng nhập thành công!", Severity.Success);
-            Navigation.NavigateTo("/", forceLoad: true);
+            NavigationManager.NavigateTo("/", forceLoad: true);
         }
         else
         {
