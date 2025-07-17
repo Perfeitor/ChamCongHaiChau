@@ -3,6 +3,7 @@ using Blazored.LocalStorage;
 using ChamCongHaiChau.Client.Services;
 using ChamCongHaiChau.Shared.Models;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
 
@@ -21,16 +22,20 @@ public class AuthService : IAuthService
         _authStateProvider = (JwtAuthStateProvider)authProvider;
     }
 
-    public async Task<bool> Login(LoginRequest request)
+    public async Task<LoginResponse> Login(LoginRequest request)
     {
         var response = await _http.PostAsJsonAsync("api/Auth/login", request);
 
         if (!response.IsSuccessStatusCode)
-            return false;
+            return new LoginResponse
+            {
+                IsSuccess = false,
+                Message = "Đăng nhập không thành công."
+            };
 
-        var result = await response.Content.ReadFromJsonAsync<TokenResponse>();
-        if (result == null || string.IsNullOrWhiteSpace(result.Token))
-            return false;
+        var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+        if (!result!.IsSuccess)
+            return result;
 
         await _localStorage.SetItemAsync("authToken", result.Token);
 
@@ -45,7 +50,7 @@ public class AuthService : IAuthService
         _http.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.Token);
 
-        return true;
+        return result;
     }
 
     public async Task Logout()
@@ -67,6 +72,13 @@ public class AuthService : IAuthService
 
     public async Task<bool> CheckTokenAndLogoutIfExpired()
     {
+        var user = await GetCurrentUser();
+        if (string.IsNullOrEmpty(user.Id))
+        {
+            await Logout();
+            return false;
+        }
+
         var token = await _localStorage.GetItemAsync<string>("authToken");
         if (string.IsNullOrWhiteSpace(token))
             return false;
@@ -78,5 +90,24 @@ public class AuthService : IAuthService
         }
 
         return false;
+    }
+
+    public async Task<ApplicationUser> GetCurrentUser()
+    {
+        var user = await _localStorage.GetItemAsync<ApplicationUser>("currentUser");
+        return user ?? new();
+    }
+
+    public async Task<RegisterResponse> Register(RegisterRequest model)
+    {
+        var register = await _http.PostAsJsonAsync("api/Auth/register", model);
+        if (!register.IsSuccessStatusCode)
+            return new RegisterResponse
+            {
+                IsSuccess = false,
+                Message = "Đăng ký không thành công."
+            };
+        var result = await register.Content.ReadFromJsonAsync<RegisterResponse>();
+        return result!;
     }
 }
