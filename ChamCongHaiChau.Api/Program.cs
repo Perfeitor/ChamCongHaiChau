@@ -1,4 +1,5 @@
 ﻿using ChamCongHaiChau.Api.Data;
+using ChamCongHaiChau.Api.Services;
 using ChamCongHaiChau.Shared.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -63,6 +64,8 @@ builder.Services.AddCors(options =>
                   .AllowCredentials(); // nếu ông dùng cookie auth
         });
 });
+
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 

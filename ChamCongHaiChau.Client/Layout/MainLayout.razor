@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @inject IAuthService AuthService
 
-<MudThemeProvider Theme="@LumenThemeProvider.Lumentheme"/>
+<MudThemeProvider @ref="mudThemeProvider" IsDarkMode="_isDarkMode" Theme="@LumenThemeProvider.Lumentheme"/>
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -16,6 +16,22 @@
     <MudDrawer @bind-Open="_drawerOpen" Elevation="1" Variant="DrawerVariant.Temporary">
         <NavMenu />
     </MudDrawer>
+    <MudAppBar Elevation="1">
+        @if (!string.IsNullOrEmpty(currentUser.UserName))
+        {
+            <MudAvatar Class="position-relative" Color="Color.Primary">
+                <MudText Style="color: white">@currentUser.UserName![0]</MudText>
+                <MudIconButton Class="position-absolute h-100 w-100" Style="top: 0; left: 0;" OnClick="@DrawerToggle" />
+            </MudAvatar>
+        }
+        else
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@DrawerToggle" />
+        }
+
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/MudBlazor/MudBlazor" Target="_blank" />
+    </MudAppBar>
     <MudMainContent>
         @Body
     </MudMainContent>
@@ -23,6 +39,26 @@
 
 @code {
     private bool _drawerOpen = false;
+    private bool _isDarkMode;
+    private MudThemeProvider mudThemeProvider;
+    private ApplicationUser currentUser = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isDarkMode = await mudThemeProvider.GetSystemDarkModeAsync();
+            await mudThemeProvider.WatchSystemDarkModeAsync(OnSystemDarkModeChanged);
+            StateHasChanged();
+        }
+    }
+
+    private Task OnSystemDarkModeChanged(bool newValue)
+    {
+        _isDarkMode = newValue;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
 
     void DrawerToggle()
     {
@@ -32,5 +68,6 @@
     protected override async Task OnInitializedAsync()
     {
         await AuthService.CheckTokenAndLogoutIfExpired();
+        currentUser = await AuthService.GetCurrentUser();
     }
 }
