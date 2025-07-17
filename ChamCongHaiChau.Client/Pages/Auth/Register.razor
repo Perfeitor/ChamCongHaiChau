@@ -1,0 +1,143 @@
+﻿@page "/Account/register"
+@inject IAuthService AuthService
+@inject ISnackbar Snackbar
+@inject TempLoginState TempState
+
+<MudPaper Elevation="4" Class="pa-6 rounded-lg" Style="width:100%">
+    <MudText Typo="Typo.h5" GutterBottom="true">Đăng ký tài khoản</MudText>
+
+    <EditForm Model="@model" OnValidSubmit="HandleRegister">
+        <DataAnnotationsValidator />
+
+        <!-- Username -->
+        <MudTextField Label="Tên tài khoản"
+                      @bind-Value="model.Username"
+                      For="@(() => model.Username)"
+                      Required="true"
+                      Variant="Variant.Outlined"
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@Icons.Material.Filled.Person"
+                      ShrinkLabel
+                      Class="w-100" />
+        
+        <!-- Username -->
+        <MudTextField Label="Gmail"
+                      @bind-Value="model.Email"
+                      For="@(() => model.Email)"
+                      Required="true"
+                      Variant="Variant.Outlined"
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@Icons.Material.Filled.Mail"
+                      ShrinkLabel
+                      Placeholder="Email sử dụng để đặt lại mật khẩu"
+                      Class="w-100" />
+
+        <!-- Password -->
+        <MudTextField Label="Mật khẩu"
+                      For="@(() => model.Password)"
+                      @bind-Value="model.Password"
+                      Required="true"
+                      Variant="Variant.Outlined"
+                      InputType="@passwordInputType"
+                      ShrinkLabel
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@passwordIcon"
+                      OnAdornmentClick="TogglePasswordVisibility"
+                      Class="w-100" />
+
+        <!-- Confirm Password -->
+        <MudTextField Label="Xác nhận mật khẩu"
+                      For="@(() => model.ConfirmPassword)"
+                      @bind-Value="model.ConfirmPassword"
+                      Required="true"
+                      Variant="Variant.Outlined"
+                      InputType="@confirmPasswordInputType"
+                      ShrinkLabel
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@confirmPasswordIcon"
+                      OnAdornmentClick="ToggleConfirmPasswordVisibility"
+                      Class="w-100" />
+
+        <MudButton ButtonType="ButtonType.Submit" FullWidth Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" Disabled="@loading">
+            <MudIcon Icon="@Icons.Material.Filled.AppRegistration" Class="mr-2" />
+            @(loading ? "Đang xử lý..." : "Đăng ký")
+        </MudButton>
+
+        <div style="display:flex; align-items:center; text-align:center;" class="my-2">
+            <MudDivider Class="flex-grow-1" Style="width: auto !important" />
+            <MudText Class="mx-2">Hoặc</MudText>
+            <MudDivider Class="flex-grow-1" Style="width: auto !important" />
+        </div>
+
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large"
+                   Href="/Account/login">
+            <MudIcon Icon="@Icons.Material.Filled.Login" Class="mr-2" />
+            Tiếp tục đăng nhập
+        </MudButton>
+    </EditForm>
+</MudPaper>
+
+@code {
+    private RegisterRequest model = new();
+    private bool loading;
+
+    // Password field
+    private InputType passwordInputType = InputType.Password;
+    private string passwordIcon = Icons.Material.Filled.VisibilityOff;
+
+    private void TogglePasswordVisibility()
+    {
+        if (passwordInputType == InputType.Password)
+        {
+            passwordInputType = InputType.Text;
+            passwordIcon = Icons.Material.Filled.Visibility;
+        }
+        else
+        {
+            passwordInputType = InputType.Password;
+            passwordIcon = Icons.Material.Filled.VisibilityOff;
+        }
+    }
+
+    // Confirm Password field
+    private InputType confirmPasswordInputType = InputType.Password;
+    private string confirmPasswordIcon = Icons.Material.Filled.VisibilityOff;
+
+    private void ToggleConfirmPasswordVisibility()
+    {
+        if (confirmPasswordInputType == InputType.Password)
+        {
+            confirmPasswordInputType = InputType.Text;
+            confirmPasswordIcon = Icons.Material.Filled.Visibility;
+        }
+        else
+        {
+            confirmPasswordInputType = InputType.Password;
+            confirmPasswordIcon = Icons.Material.Filled.VisibilityOff;
+        }
+    }
+
+    private async Task HandleRegister()
+    {
+        loading = true;
+        try
+        {
+            var resp = await AuthService.Register(model);
+            if (resp.IsSuccess)
+            {
+                TempState.Username = model.Username;
+                TempState.Password = model.Password;
+                NavigationManager.NavigateTo("/Account/login");
+            }
+            else
+            {
+                Snackbar.Add(resp.Message ?? "Lỗi không xác định", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Lỗi: {ex.Message}", Severity.Error);
+        }
+        loading = false;
+    }
+}

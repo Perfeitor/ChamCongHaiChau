@@ -17,56 +17,40 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly IAuthService _authService;
 
-    public AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+    public AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration, IAuthService authService)
     {
         _userManager = userManager;
         _configuration = configuration;
+        _authService = authService;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest model)
     {
-        var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-        var result = await _userManager.CreateAsync(user, model.Password);
-
-        if (result.Succeeded)
-            return Ok();
-
-        return BadRequest(result.Errors);
+        try
+        {
+            var result = await _authService.Register(model);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new LoginResponse { IsSuccess = false, Message = ex.Message });
+        }
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Lsogin([FromBody] LoginRequest model)
+    public async Task<IActionResult> Login([FromBody] LoginRequest model)
     {
-        var user = await _userManager.FindByEmailAsync(model.Email);
-        if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+        try
         {
-            var token = GenerateJwtToken(user, model.RememberMe);
-            return Ok(new { token });
+            var response = (LoginResponse)(await _authService.Login(model));
+            return Ok(response);
         }
-
-        return Unauthorized();
-    }
-
-    private string GenerateJwtToken(ApplicationUser user, bool rememberMe)
-    {
-        var jwtKey = _configuration["Jwt:Key"] ?? _configuration["Jwt:Default"]!;
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var expires = rememberMe ? DateTime.UtcNow.AddDays(30) : DateTime.UtcNow.AddHours(1);
-
-        var token = new JwtSecurityToken(
-            claims: new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.UserName!)
-            },
-            expires: expires,
-            signingCredentials: creds
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        catch (Exception ex)
+        {
+            return BadRequest(new RegisterResponse { IsSuccess = false, Message = ex.Message });
+        }
     }
 }

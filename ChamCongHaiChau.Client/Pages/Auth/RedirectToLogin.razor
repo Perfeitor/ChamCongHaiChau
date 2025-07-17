@@ -1,0 +1,14 @@
+﻿@inject NavigationManager NavigationManager
+<PageTitle>Trang chuyển hướng</PageTitle>
+
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+    <MudText>Đang chuyển hướng</MudText>
+</div>
+
+@code {
+    override protected void OnInitialized()
+    {
+        // Redirect to the login page
+        NavigationManager.NavigateTo("/Account/login", forceLoad: true);
+    }
+}

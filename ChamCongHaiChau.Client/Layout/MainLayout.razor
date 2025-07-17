@@ -1,25 +1,36 @@
 ﻿@inherits LayoutComponentBase
-@* Required *@
-<MudThemeProvider />
+@inject IAuthService AuthService
+
+<MudThemeProvider Theme="@LumenThemeProvider.Lumentheme"/>
 <MudPopoverProvider />
-
-@* Needed for dialogs *@
 <MudDialogProvider />
-
-@* Needed for snackbars *@
 <MudSnackbarProvider />
-<div class="page">
-    <div class="sidebar">
+
+<style>
+    .mud-container {
+        height: unset !important;
+    }
+</style>
+
+<MudLayout>
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="1" Variant="DrawerVariant.Temporary">
         <NavMenu />
-    </div>
+    </MudDrawer>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+@code {
+    private bool _drawerOpen = false;
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.CheckTokenAndLogoutIfExpired();
+    }
+}

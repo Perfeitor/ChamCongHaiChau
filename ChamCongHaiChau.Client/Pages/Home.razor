@@ -1,4 +1,13 @@
 ﻿@page "/"
-
+@inject IAuthService AuthService
+@attribute [Authorize]
 <PageTitle>Home</PageTitle>
 
+<MudButton OnClick="Logout">Logout</MudButton>
+
+@code{
+    private async Task Logout()
+    {
+        await AuthService.Logout();
+    }
+}
