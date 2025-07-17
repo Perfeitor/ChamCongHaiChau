@@ -1,0 +1,42 @@
+﻿@inherits LayoutComponentBase
+
+<style>
+    .mud-container {
+        height: unset !important;
+    }
+</style>
+
+<MudThemeProvider @ref="mudThemeProvider" Theme="LumenThemeProvider.Lumentheme" IsDarkMode="_isDarkMode"/>
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
+<MudLayout>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Small">
+            @Body
+        </MudContainer>     
+    </MudMainContent>
+</MudLayout>
+
+@code{
+    MudThemeProvider mudThemeProvider;
+    public bool _isDarkMode;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isDarkMode = await mudThemeProvider.GetSystemDarkModeAsync();
+            await mudThemeProvider.WatchSystemDarkModeAsync(OnSystemDarkModeChanged);
+            StateHasChanged();
+        }
+    }
+
+    private Task OnSystemDarkModeChanged(bool newValue)
+    {
+        _isDarkMode = newValue;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+}

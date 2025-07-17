@@ -1,7 +1,7 @@
 ﻿<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="GetLayoutFunc()">
                 <NotAuthorized>
                     <ChamCongHaiChau.Client.Pages.Auth.RedirectToLogin />
                 </NotAuthorized>
@@ -15,3 +15,16 @@
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
+
+@code{
+    private Type GetLayoutFunc()
+    {
+        var Dispatch = new Uri(NavigationManager.Uri).AbsolutePath;
+        if (Dispatch.Contains("/Account", StringComparison.OrdinalIgnoreCase))
+        {
+            return typeof(Layout.NotAuthLayout);
+        }
+        return typeof(Layout.MainLayout);
+    }
+
+}
