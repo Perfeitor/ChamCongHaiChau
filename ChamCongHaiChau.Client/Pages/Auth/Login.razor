@@ -1,13 +1,6 @@
 ﻿@page "/Account/login"
 @inject IAuthService AuthService
-
-<style>
-    @@media (max-width: 600px) {
-        .mud-paper {
-            margin-top: 20%;
-        }
-    }
-</style>
+@inject TempLoginState TempState
 
 <MudPaper Elevation="4" Class="pa-6 rounded-lg" Style="width:100%">
     <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4" Color="Color.Primary">Đăng nhập</MudText>
@@ -16,9 +9,9 @@
         <DataAnnotationsValidator />
 
         <MudStack Spacing="3">
-            <MudTextField Label="Email"
-                          For="@(() => loginModel.Email)"
-                          @bind-Value="loginModel.Email"
+            <MudTextField Label="Tên tài khoản hoặc email"
+                          For="@(() => loginModel.Username)"
+                          @bind-Value="loginModel.Username"
                           Required="true"
                           Variant="Variant.Outlined"
                           ShrinkLabel
@@ -36,15 +29,26 @@
                           OnAdornmentClick="TogglePasswordVisibility"
                           Class="w-100" />
 
-            <MudCheckBox @bind-Value="loginModel.RememberMe" Label="Nhớ đăng nhập" />
+            <MudCheckBox @bind-Value="loginModel.RememberMe" Label="Nhớ thiết bị này" />
 
             <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large"
                        ButtonType="ButtonType.Submit" Class="mt-4">
                 <MudIcon Icon="@Icons.Material.Filled.Login" Class="mr-2" /> Đăng nhập
             </MudButton>
 
+            <div style="display:flex; align-items:center; text-align:center;">
+                <MudDivider Class="flex-grow-1" Style="width: auto !important"/>
+                <MudText Class="mx-2">Hoặc</MudText>
+                <MudDivider Class="flex-grow-1" Style="width: auto !important" />
+            </div>
+
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large"
+                       Href="/Account/register">
+                <MudIcon Icon="@Icons.Material.Filled.AppRegistration" Class="mr-2" /> Đăng ký
+            </MudButton>
+
             <MudText Typo="Typo.body2" Align="Align.Center" Class="mt-2">
-                Quên mật khẩu? <MudLink Href="/forgot-password">Khôi phục</MudLink>
+                Quên mật khẩu? <MudLink Href="/Account/forgot-password">Khôi phục</MudLink>
             </MudText>
         </MudStack>
     </EditForm>
@@ -57,12 +61,9 @@
 
     protected override void OnInitialized()
     {
-        try
-        {
-            base.OnInitialized();
-        }
-        catch (Exception e)
-        { }
+        loginModel.Username = TempState.Username;
+        loginModel.Password = TempState.Password;
+        TempState.Clear();
     }
     private void TogglePasswordVisibility()
     {
@@ -81,20 +82,20 @@
     {
         var req = new LoginRequest
         {
-            Email = loginModel.Email,
+            Username = loginModel.Username,
             Password = loginModel.Password,
             RememberMe = loginModel.RememberMe
         };
 
-        var ok = await AuthService.Login(req);
-        if (ok)
+        var response = await AuthService.Login(req);
+        if (response.IsSuccess)
         {
             Snackbar.Add("Đăng nhập thành công!", Severity.Success);
             NavigationManager.NavigateTo("/", forceLoad: true);
         }
         else
         {
-            Snackbar.Add("Đăng nhập thất bại, vui lòng kiểm tra lại.", Severity.Error);
+            Snackbar.Add($"Lỗi: {response.Message}", Severity.Error);
         }
     }
 }
